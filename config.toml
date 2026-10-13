@@ -22,7 +22,8 @@ max_itens = 10                          # no máximo N notícias "leia hoje" por
 provedor = "gemini"                     # "gemini" | "groq"
 modelo = "gemini-3.5-flash-lite"
 max_por_coleta = 150                    # protege a cota grátis; o que passar fica para a próxima Coleta
-pausa_segundos = 1                      # entre chamadas (evita "429 Too Many Requests")
+pausa_segundos = 4                      # entre chamadas: ~15 por minuto, o ritmo do Gemini grátis (evita "429 Too Many Requests")
+minutos_max = 20                        # tempo máximo de IA por Coleta; o que sobrar fica para a próxima (nada se perde)
 # O que é notícia relevante para a i9+ (a IA dá a nota por este texto). Validar com o Jefferson/Sandro.
 criterios = """A i9+ / InoveMais (Curitiba-PR) dá segunda vida a baterias de lítio (de carros elétricos, bancos de energia
 e equipamentos) e as requalifica para armazenamento de energia, em economia circular. Nota ALTA (8-10): cita a

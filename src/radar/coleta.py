@@ -205,10 +205,13 @@ def _coletar(cfg, fonte, ia, remetente, hoje, con, log, feeds):
     return {"novas": novas, "ignoradas": ignoradas, "ia_ok": ok, "ia_falhas": falhas, "alerta": len(marcas), "vitais": len(vitais), "digest": digest}
 
 
-def analisar_pendentes(cfg: Config, ia, con, log=print, esperar=time.sleep) -> tuple[int, int]:
-    """Manda à IA o que está marcado para reprocessar. `[ia] max_por_coleta` e `pausa_segundos` protegem a cota grátis."""
+def analisar_pendentes(cfg: Config, ia, con, log=print, esperar=time.sleep, relogio=time.monotonic) -> tuple[int, int]:
+    """Manda à IA o que está marcado para reprocessar. `[ia] max_por_coleta` e `pausa_segundos` protegem a cota grátis;
+    `minutos_max` limita o tempo total (na nuvem a Coleta tem hora para acabar: o que passar fica para a próxima)."""
     maximo = int(cfg.ia.get("max_por_coleta", 0) or 0)
     pausa = float(cfg.ia.get("pausa_segundos", 0) or 0)
+    minutos = float(cfg.ia.get("minutos_max", 0) or 0)
+    inicio = relogio()
     pendentes = db.pendentes_de_ia(con)
     if getattr(ia, "sem_chave", False):
         log(f"ia: sem chave configurada, {len(pendentes)} Menções esperando (Painel > Configurações > Chave do Gemini)")
@@ -220,6 +223,9 @@ def analisar_pendentes(cfg: Config, ia, con, log=print, esperar=time.sleep) -> t
     for i, m in enumerate(pendentes):
         if seguidas >= 5:
             log(f"ia: 5 falhas seguidas, parei (sem chave ou cota esgotada?); {len(pendentes) - i} ficam para a proxima Coleta")
+            break
+        if minutos and relogio() - inicio >= minutos * 60:
+            log(f"ia: limite de {minutos:g} min atingido; {len(pendentes) - i} ficam para a proxima Coleta")
             break
         if pausa and i:
             esperar(pausa)

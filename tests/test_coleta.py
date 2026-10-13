@@ -545,3 +545,25 @@ def test_restringir_busca_mantem_todos_os_termos_de_marca_para_deteccao(tmp_path
     marca = [t.texto for t in cfg.termos if t.marca]
     assert buscados == ["baterias de segunda vida"]
     assert marca == ["InoveMais", "i9+"]
+
+
+def test_ia_para_no_limite_de_tempo_e_deixa_o_resto_para_depois(tmp_path):
+    """Na nuvem a Coleta tem hora para acabar: com `minutos_max`, a IA para e o resto continua pendente."""
+    from radar import db
+    from radar.coleta import analisar_pendentes
+    (tmp_path / "config.toml").write_text(CONFIG_TOML)
+    cfg = carregar_config(tmp_path / "config.toml")
+    import dataclasses
+    cfg = dataclasses.replace(cfg, ia={**cfg.ia, "minutos_max": 1})
+    banco = tmp_path / "radar.db"
+    from radar.cli import _IASemChave
+    fonte = FonteFalsa({("InoveMais", "pt"): [MARCA1], ("InoveMais", "en"): [N2], ("baterias de segunda vida", "pt"): [N3]})
+    coletar(cfg, fonte, _IASemChave(), RemetenteFalso(), date(2026, 8, 25), banco)  # 3 pendentes, sem IA
+    tempos = iter([0, 0, 30, 61, 999])  # início, item 1, item 2, item 3 (já passou de 1 min)
+    con = db.abrir(banco)
+    logs = []
+    ok, falhas = analisar_pendentes(cfg, IAFalsa(), con, logs.append, esperar=lambda s: None, relogio=lambda: next(tempos))
+    assert (ok, falhas) == (2, 0)
+    assert len(db.pendentes_de_ia(con)) == 1
+    assert any("limite de 1 min" in linha for linha in logs)
+    con.close()

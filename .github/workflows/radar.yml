@@ -28,7 +28,7 @@ concurrency: radar              # nunca duas Coletas ao mesmo tempo (um clique a
 jobs:
   coleta:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 75           # teto do job; a Coleta tem o próprio limite abaixo
     env:
       ACAO: ${{ inputs.acao || 'coleta' }}
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
@@ -45,6 +45,7 @@ jobs:
 
       - name: Coleta
         if: env.ACAO == 'coleta'
+        timeout-minutes: 50     # rede de segurança: a IA já para sozinha em [ia] minutos_max
         env:
           RADAR_JANELA: ${{ inputs.janela }}
           RADAR_TERMOS: ${{ inputs.termos }}
@@ -59,7 +60,7 @@ jobs:
         run: uv run --no-dev radar fumaca email
 
       - name: Guardar o histórico no repositório
-        if: env.ACAO == 'coleta'
+        if: always() && env.ACAO == 'coleta'   # mesmo se a Coleta falhar no meio, o que já foi analisado fica salvo
         run: |
           git config user.name "radar-bot"
           git config user.email "radar-bot@users.noreply.github.com"
