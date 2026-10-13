@@ -1,0 +1,19 @@
+# 11: Texto da matéria + Fontes extras (Bing News, Google Alerts, RSS de sites)
+
+**What to build:** Hoje o robô só enxerga **título + veículo** de cada Notícia (o Google News RSS não entrega o corpo). Consequência vista em 26/08: as duas matérias reais sobre a i9+ (Feira de Inovação na Rua XV, ABSOLAR Meeting) citam a empresa só no corpo do texto → nenhuma virou Menção de marca, e a IA resume sem saber do que a matéria fala de verdade. Este ticket dá ao robô um **trecho do texto** de cada Notícia e soma índices além do Google News: (a) Bing News RSS (traz snippet do corpo, sem chave); (b) Google Alerts em modo RSS (índice diferente, pega blogs/páginas — precisa da conta Gmail do projeto); (c) RSS direto dos sites que o Parceiro indicar (Tecpar, AEN Paraná, Agência Curitiba, Canal Solar, ANEEL…). O trecho entra na detecção de marca (título + trecho + resumo) e no prompt da IA. Cada Fonte é um adaptador com a mesma interface `buscar(termo, idioma)`; a Coleta percorre todas.
+
+**Blocked by:** 02 (Fonte real — Google News RSS). Lista de sites depende da reunião com o Sandro ("quais fontes importam?").
+
+**Status:** feita (falta só o Sandro indicar sites/alertas para os [[feeds]])
+
+- [x] Notícia ganha campo `trecho` (opcional); Google News deixa vazio, Bing preenche com o snippet
+- [x] Menção de marca considera título + trecho + resumo
+- [x] Prompt da IA recebe o trecho quando existir
+- [x] Fonte Bing News RSS (`bing.com/news/search?format=rss`) com teste em XML gravado
+- [x] Fonte Google Alerts RSS (URL do alerta no config) com teste em XML gravado
+- [x] Fonte RSS genérica por URL (lista `[[fontes_rss]]` no config) com teste em XML gravado
+- [x] Mesma Notícia vinda de duas Fontes entra uma vez (dedupe pelo link final, não pelo redirecionador)
+- [x] Coleta de estreia refeita: matéria do Tecpar (Jornale, 04/2025) com [marca] via trecho do Bing; a da Feira da Rua XV não veio com trecho em nenhuma Fonte (o texto só no corpo da Prefeitura). Obs.: o Bing devolve resultados diferentes por país do IP — o runner do GitHub (EUA) não viu a matéria; foi coletada localmente e commitada
+- [x] Limite documentado: LinkedIn/Instagram não têm API gratuita — ficam fora (dizer isso ao Parceiro)
+
+**Decisão (26/08):** Menção de marca é detectada só em texto da Fonte (título + trecho), **nunca no resumo da IA** — o modelo escreveu "não há menção à i9+" e gerou um Alerta falso. Diverge da spec ("título ou resumo") de propósito.

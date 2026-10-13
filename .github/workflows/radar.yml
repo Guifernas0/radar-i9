@@ -1,0 +1,70 @@
+# Radar i9+ — o robô acorda sozinho todo dia (ADR-0001). Ninguém aperta nada.
+# Também liga pelo botão "Coletar agora" / "Testar a IA" / "Enviar e-mail de teste" do Painel publicado
+# (o Painel chama a API do GitHub com o GITHUB_TOKEN dos Secrets do Streamlit — ver radar/nuvem.py).
+name: radar
+
+on:
+  schedule:
+    - cron: "0 11 * * *"        # 11:00 UTC = 08:00 em Curitiba
+  workflow_dispatch:            # botão "Run workflow" (ou o Painel) para rodar na hora
+    inputs:
+      acao:                     # o que o Painel pediu; vazio = coleta
+        required: false
+        default: "coleta"
+        type: choice
+        options: [coleta, teste-ia, teste-email]
+      janela:                   # ex.: 1y, 30d — coleta de estreia; vazio = normal (2 dias)
+        required: false
+        default: ""
+      termos:                   # ex.: "InoveMais,i9+ baterias" — restringe a esses Termos; vazio = todos
+        required: false
+        default: ""
+
+permissions:
+  contents: write               # para commitar o radar.db de volta
+
+concurrency: radar              # nunca duas Coletas ao mesmo tempo (um clique a mais entra na fila)
+
+jobs:
+  coleta:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      ACAO: ${{ inputs.acao || 'coleta' }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+      SMTP_USER: ${{ secrets.SMTP_USER }}
+      SMTP_PASS: ${{ secrets.SMTP_PASS }}
+      # Variáveis (não segredos) do repositório:
+      RADAR_SIMULAR_ENVIO: ${{ vars.RADAR_SIMULAR_ENVIO }}   # qualquer valor = modo simulado, sem enviar e-mail
+      RADAR_LINK_PAINEL: ${{ vars.RADAR_LINK_PAINEL }}       # endereço do Painel publicado (vai nos e-mails)
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --no-dev
+
+      - name: Coleta
+        if: env.ACAO == 'coleta'
+        env:
+          RADAR_JANELA: ${{ inputs.janela }}
+          RADAR_TERMOS: ${{ inputs.termos }}
+        run: uv run --no-dev radar
+
+      - name: Teste da IA
+        if: env.ACAO == 'teste-ia'
+        run: uv run --no-dev radar fumaca ia
+
+      - name: Teste de e-mail
+        if: env.ACAO == 'teste-email'
+        run: uv run --no-dev radar fumaca email
+
+      - name: Guardar o histórico no repositório
+        if: env.ACAO == 'coleta'
+        run: |
+          git config user.name "radar-bot"
+          git config user.email "radar-bot@users.noreply.github.com"
+          git add radar.db
+          git diff --cached --quiet && echo "sem mudanca no historico" && exit 0
+          git commit -m "radar: coleta de $(date -u +%Y-%m-%d)"
+          git pull --rebase
+          git push

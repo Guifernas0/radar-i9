@@ -1,0 +1,175 @@
+# Configuração do Radar i9+ — a equipe (ou o Parceiro, pelo Painel → Configurações) edita este arquivo.
+# Termos e textos SEM aspas dentro. Depois de mudar, a próxima Coleta já usa.
+nome = "Radar i9+"
+projeto = "P2 - Agente de IA para Clipping de Comunicação"   # prefixo do assunto de TODO e-mail (Manual de Envio de E-mail da i9+)
+intervalo_dias = 7                      # dias entre um Digest e o próximo (o Sandro escolhe)
+link_painel = "http://localhost:8501"   # no PC; se publicar na web, troque pelo endereço público
+
+# Selo "fonte conhecida" no Painel (veracidade): nome do veículo OU domínio (com ponto).
+fontes_conhecidas = [
+  "gov.br", "leg.br", "camara", "senado", "Embrapii", "Lactec", "SENAI", "Tecpar", "weforum.org", "globalbattery.org",
+  "Valor Econômico", "Folha", "Estadão", "O GLOBO", "g1", "CNN Brasil", "Agência Brasil", "Poder360", "Exame",
+  "Gazeta do Povo", "Bem Paraná", "Canal Solar", "Agência eixos", "MegaWhat", "Canal Energia", "BNamericas",
+  "Reuters", "Bloomberg", "Financial Times", "Euronews", "Energy-Storage.News", "ESS News", "pv magazine",
+  "Renewables Now", "Recycling Today", "IDTechEx",
+]
+
+[alerta]
+relevancia_minima = 8                   # "leia hoje": Relevância >= isto vai no e-mail do mesmo dia (além da marca)
+max_itens = 10                          # no máximo N notícias "leia hoje" por e-mail
+
+[ia]
+provedor = "gemini"                     # "gemini" | "groq"
+modelo = "gemini-3.5-flash-lite"
+max_por_coleta = 150                    # protege a cota grátis; o que passar fica para a próxima Coleta
+pausa_segundos = 1                      # entre chamadas (evita "429 Too Many Requests")
+# O que é notícia relevante para a i9+ (a IA dá a nota por este texto). Validar com o Jefferson/Sandro.
+criterios = """A i9+ / InoveMais (Curitiba-PR) dá segunda vida a baterias de lítio (de carros elétricos, bancos de energia
+e equipamentos) e as requalifica para armazenamento de energia, em economia circular. Nota ALTA (8-10): cita a
+i9+/InoveMais ou seus parceiros (Lactec, SENAI, Embrapii, Tecpar); lei, norma ou projeto de lei sobre baterias,
+descarte ou logística reversa no Brasil; financiamento ou investidor para baterias de segunda vida ou armazenamento;
+concorrente brasileiro de reuso/reciclagem de baterias; montadora ou fabricante com programa de segunda vida no Brasil.
+Nota MÉDIA (5-7): tecnologia nova de baterias, preço do lítio, mercado global de armazenamento, ESG no setor de energia.
+Nota BAIXA (0-4): notícia genérica de energia, carro elétrico sem relação com bateria, propaganda, assunto fora do setor."""
+
+[email]
+alerta = ["radar.i9.teste@example.com"]   # destino de teste — trocar pelo do Sandro só depois que ele aprovar
+digest = ["radar.i9.teste@example.com"]   # idem
+
+# ---------------- Termos ----------------
+# marca = true → dispara Alerta no mesmo dia. idiomas = [] → só detecta a marca, não busca.
+# rotulo = nome bonito no Painel (útil para buscas com site:).
+
+[[termos]]
+texto = "InoveMais"
+marca = true
+idiomas = ["pt", "en"]
+
+[[termos]]
+texto = "i9+"
+marca = true
+idiomas = []                            # só detecção de marca (buscar "i9+" traz lixo)
+
+[[termos]]
+texto = "i9+ baterias"
+idiomas = ["pt"]
+
+[[termos]]
+texto = "Inovemais Baterias"          # nome como aparece no CNPJ/Instagram
+marca = true
+idiomas = ["pt"]
+
+[[termos]]
+texto = "baterias de segunda vida"
+idiomas = ["pt"]
+
+[[termos]]
+texto = "second-life batteries"
+idiomas = ["en"]
+
+[[termos]]
+texto = "novas baterias"               # citado pela i9+ na reunião de 27/08
+idiomas = ["pt"]
+
+[[termos]]
+texto = "baterias de lítio"            # citado pela i9+ na reunião de 27/08
+idiomas = ["pt"]
+
+[[termos]]
+texto = "economia circular baterias"
+idiomas = ["pt"]
+
+[[termos]]
+texto = "circular economy batteries"
+idiomas = ["en"]
+
+[[termos]]
+texto = "baterias de lítio reciclagem"
+idiomas = ["pt"]
+
+[[termos]]
+texto = "lei das baterias"             # Congresso Nacional (reunião de 27/08)
+idiomas = ["pt"]
+
+[[termos]]
+texto = "logística reversa baterias"
+idiomas = ["pt"]
+
+[[termos]]
+texto = "battery passport"
+idiomas = ["en"]
+
+[[termos]]
+texto = "crédito de carbono baterias"
+idiomas = ["pt"]
+
+[[termos]]
+texto = "eletromobilidade"
+idiomas = ["pt"]
+
+[[termos]]
+texto = "BYD baterias"                 # montadora (filtro "montadora" do Cronograma C25)
+idiomas = ["pt"]
+
+[[termos]]
+texto = "painéis solares requalificados"
+idiomas = ["pt"]
+
+[[termos]]
+texto = "armazenamento de energia baterias"
+idiomas = ["pt"]
+
+[[termos]]
+texto = "battery energy storage"
+idiomas = ["en"]
+
+[[termos]]
+texto = "energia renovável baterias"
+idiomas = ["pt"]
+
+[[termos]]
+texto = "batteries site:weforum.org"   # o WEF não tem RSS oficial: busca no Google News só dentro do site
+rotulo = "Fórum Econômico Mundial"
+idiomas = ["en"]
+
+[[termos]]
+texto = "Global Battery Alliance"       # GBA, ~200 empresas (reunião de 27/08)
+idiomas = ["en"]
+
+[[termos]]
+texto = "Lactec"
+idiomas = ["pt"]
+
+[[termos]]
+texto = "SENAI baterias"
+idiomas = ["pt"]
+
+[[termos]]
+texto = "EMBRAPII energia"
+idiomas = ["pt"]
+
+[[termos]]
+texto = "TSEA Energia"
+idiomas = ["pt"]
+
+# ---------------- Feeds fixos (RSS/Atom) ----------------
+# O nome vira o "Termo" da Menção. filtro = só entra o que cita alguma dessas palavras (feeds genéricos).
+# Google Alerts: crie o alerta em google.com/alerts com "Entregar para: feed RSS" e cole a URL aqui.
+[[feeds]]
+nome = "Embrapii"
+url = "https://embrapii.org.br/feed/"
+
+[[feeds]]
+nome = "Câmara dos Deputados"
+url = "https://www.camara.leg.br/noticias/rss/dinamico/MEIO-AMBIENTE"
+filtro = ["bateria", "lítio", "litio", "logística reversa", "reciclagem", "resíduo", "armazenamento de energia", "veículo elétrico"]
+
+[[feeds]]
+nome = "Câmara dos Deputados"
+url = "https://www.camara.leg.br/noticias/rss/dinamico/INDUSTRIA-E-COMERCIO"
+filtro = ["bateria", "lítio", "litio", "logística reversa", "reciclagem", "armazenamento de energia", "veículo elétrico"]
+
+[[feeds]]
+nome = "Senado Federal"
+url = "https://www12.senado.leg.br/noticias/feed/todasnoticias"
+filtro = ["bateria", "lítio", "litio", "logística reversa", "reciclagem", "armazenamento de energia", "veículo elétrico"]

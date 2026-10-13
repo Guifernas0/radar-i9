@@ -1,0 +1,24 @@
+[project]
+name = "radar"
+version = "0.1.0"
+description = "Radar i9+ — robô que vigia notícias da i9+/InoveMais e do setor, resume com IA e entrega por e-mail e Painel"
+readme = "README.md"
+authors = [
+    { name = "Tiago Algauer Vieira", email = "tiagoalgauer@gmail.com" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "streamlit>=1.62.0",
+]
+
+[project.scripts]
+radar = "radar.cli:main"
+
+[build-system]
+requires = ["uv_build>=0.11.26,<0.12.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
